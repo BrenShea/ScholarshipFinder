@@ -13,12 +13,14 @@ interface ScholarshipListProps {
     onToggleApply: (id: string) => void;
     hiddenScholarships?: string[];
     onToggleHide?: (id: string) => void;
+    totalCount?: number;
+    currentPage?: number;
+    onPageChange?: (page: number) => void;
 }
 
 type SortOption = 'relevance' | 'amount-high' | 'amount-low' | 'deadline';
 
-export function ScholarshipList({ scholarships, onSelect, isLoading, appliedScholarships, onToggleApply, hiddenScholarships, onToggleHide }: ScholarshipListProps) {
-    const [currentPage, setCurrentPage] = useState(1);
+export function ScholarshipList({ scholarships, onSelect, isLoading, appliedScholarships, onToggleApply, hiddenScholarships, onToggleHide, totalCount, currentPage = 1, onPageChange }: ScholarshipListProps) {
     const [sortOption, setSortOption] = useState<SortOption>('relevance');
     const [userQuizAnswers, setUserQuizAnswers] = useState<Record<string, string>>({});
     const { user } = useAuth();
@@ -33,11 +35,6 @@ export function ScholarshipList({ scholarships, onSelect, isLoading, appliedScho
             });
         }
     }, [user]);
-
-    // Reset to page 1 when scholarships count changes (e.g. new search or tab switch)
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [scholarships.length]);
 
     const calculateRelevanceScore = (scholarship: Scholarship, answers: Record<string, string>) => {
         let score = 0;
@@ -112,12 +109,20 @@ export function ScholarshipList({ scholarships, onSelect, isLoading, appliedScho
         );
     }
 
-    const totalPages = Math.ceil(sortedScholarships.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const currentScholarships = sortedScholarships.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    // Use totalCount if provided (server-side), otherwise fallback to local length
+    const effectiveTotalCount = totalCount || sortedScholarships.length;
+    const totalPages = Math.ceil(effectiveTotalCount / ITEMS_PER_PAGE);
+
+    // If onPageChange is provided, we assume server-side pagination, so we render all items
+    // Otherwise we slice locally
+    const currentScholarships = onPageChange ? sortedScholarships : sortedScholarships.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
     const handlePageChange = (newPage: number) => {
-        setCurrentPage(newPage);
+        if (onPageChange) {
+            onPageChange(newPage);
+        }
+        // If local, the parent controls currentPage, or we could have local state if we wanted
+        // But for now we assume parent control via props
     };
 
     return (
@@ -126,7 +131,7 @@ export function ScholarshipList({ scholarships, onSelect, isLoading, appliedScho
                 <h3 className="text-2xl font-bold text-white flex items-center gap-3">
                     Available Scholarships
                     <span className="text-sm font-normal text-slate-400 bg-white/5 px-3 py-1 rounded-full">
-                        {scholarships.length} found
+                        {effectiveTotalCount} found
                     </span>
                 </h3>
 
@@ -144,15 +149,13 @@ export function ScholarshipList({ scholarships, onSelect, isLoading, appliedScho
                         </select>
                         <ArrowUpDown className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     </div>
-
-
                 </div>
             </div>
 
             {totalPages > 1 && (
                 <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                     <div className="text-slate-400 text-sm hidden md:block">
-                        Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, sortedScholarships.length)} of {sortedScholarships.length} scholarships
+                        Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, effectiveTotalCount)} of {effectiveTotalCount} scholarships
                     </div>
 
                     <div className="flex items-center gap-4">
