@@ -294,6 +294,6 @@ export const ProfileSettings = () => {
                 </div>
             </div>
         </div>
-    </div >
-  );
+
+    );
 };
