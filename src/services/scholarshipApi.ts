@@ -264,7 +264,7 @@ export const searchScholarships = async (_region: string, onProgress?: (count: n
 
         const batchResults = await Promise.all(
             batch.map(source => fetchScholarshipsFromSource(source)
-                .catch(err => {
+                .catch(() => {
                     return [];
                 })
             )
