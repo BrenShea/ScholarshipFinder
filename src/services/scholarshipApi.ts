@@ -103,13 +103,12 @@ const categorizeScholarship = (name: string, description: string): string[] => {
     return Array.from(categories);
 };
 
-const fetchScholarshipsFromSource = async (source: typeof SOURCES[0]): Promise<Scholarship[]> => {
+const fetchScholarshipsFromSource = async (source: typeof SOURCES[0], maxPages: number): Promise<Scholarship[]> => {
     let allScholarships: Scholarship[] = [];
     let page = 1;
-    const MAX_PAGES = 8; // Balanced: enough scholarships without excessive bandwidth
 
     try {
-        while (page <= MAX_PAGES) {
+        while (page <= maxPages) {
             // Use our Vercel API proxy
             const response = await fetch(`/api/${source.id}/opportunities/external?page=${page}`);
             const html = await response.text();
@@ -251,14 +250,15 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0]): Promise<S
 
 // New function to scrape and sync to Supabase
 export const scrapeAndSyncScholarships = async (onProgress?: (count: number) => void): Promise<void> => {
-    const BATCH_SIZE = 5;
+    const SYNC_BATCH_SIZE = 5; // Be gentle for deep sync
+    const SYNC_MAX_PAGES = 8; // Go deep
     let totalSynced = 0;
 
-    for (let i = 0; i < SOURCES.length; i += BATCH_SIZE) {
-        const batch = SOURCES.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < SOURCES.length; i += SYNC_BATCH_SIZE) {
+        const batch = SOURCES.slice(i, i + SYNC_BATCH_SIZE);
 
         const batchResults = await Promise.all(
-            batch.map(source => fetchScholarshipsFromSource(source)
+            batch.map(source => fetchScholarshipsFromSource(source, SYNC_MAX_PAGES)
                 .catch(() => {
                     return [];
                 })
@@ -348,14 +348,15 @@ export const searchScholarships = async (_region: string, onProgress?: (count: n
     }
 
     // Batch requests to prevent overwhelming the browser/network
-    const BATCH_SIZE = 5;
+    const LIVE_BATCH_SIZE = 10; // Aggressive for speed
+    const LIVE_MAX_PAGES = 3; // Shallow for speed
     const allResults: Scholarship[] = [];
 
-    for (let i = 0; i < SOURCES.length; i += BATCH_SIZE) {
-        const batch = SOURCES.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < SOURCES.length; i += LIVE_BATCH_SIZE) {
+        const batch = SOURCES.slice(i, i + LIVE_BATCH_SIZE);
 
         const batchResults = await Promise.all(
-            batch.map(source => fetchScholarshipsFromSource(source)
+            batch.map(source => fetchScholarshipsFromSource(source, LIVE_MAX_PAGES)
                 .catch(() => {
                     return [];
                 })
