@@ -84,7 +84,15 @@ export default async function handler(req, res) {
 
     try {
         // Build the target URL with query parameters
-        const queryString = new URLSearchParams(req.query).toString();
+        // Filter out Vercel's dynamic route parameters
+        const queryParams = new URLSearchParams();
+        Object.keys(req.query).forEach(key => {
+            if (key !== 'university' && key !== 'path' && key !== '0') {
+                queryParams.append(key, req.query[key]);
+            }
+        });
+
+        const queryString = queryParams.toString();
         const targetUrl = `${baseUrl}/${path}${queryString ? '?' + queryString : ''}`;
 
         const response = await fetch(targetUrl);
