@@ -69,7 +69,7 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0]): Promise<S
 
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
-            const rows = Array.from(doc.querySelectorAll('tbody tr'));
+            const rows = Array.from(doc.querySelectorAll('table.striped-table tbody tr'));
             console.log(`Found ${rows.length} rows for ${source.name} page ${page}`);
 
             if (rows.length === 0) {
