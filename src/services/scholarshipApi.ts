@@ -250,7 +250,6 @@ export const searchScholarships = async (_region: string, onProgress?: (count: n
     if (cachedData) {
         const { timestamp, data } = JSON.parse(cachedData);
         if (Date.now() - timestamp < CACHE_DURATION) {
-            console.log('Returning cached scholarships');
             return data;
         }
     }

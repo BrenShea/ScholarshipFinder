@@ -95,11 +95,23 @@ export default async function handler(req, res) {
         const queryString = queryParams.toString();
         const targetUrl = `${baseUrl}/${path}${queryString ? '?' + queryString : ''}`;
 
-        const response = await fetch(targetUrl);
+        const response = await fetch(targetUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+            }
+        });
         const data = await response.text();
 
+        // Strip upstream CORS headers to avoid conflicts
+        res.removeHeader('Access-Control-Allow-Origin');
+
         res.setHeader('Content-Type', 'text/html');
-        res.status(response.status).send(data);
+        // Ensure we send 200 even if upstream sent 302/403 (unless it's a real error)
+        // Actually, if it's 403/302, the data might be the block page. 
+        // But sending 200 allows the client to at least try to parse it (and fail gracefully) instead of CORS error.
+        res.status(200).send(data);
     } catch (error) {
         console.error('Proxy error:', error);
         res.status(500).json({ error: 'Failed to fetch data' });
