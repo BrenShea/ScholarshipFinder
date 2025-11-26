@@ -65,6 +65,7 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0]): Promise<S
             const response = await fetch(`/api/${source.id}/opportunities/external?page=${page}`);
             const html = await response.text();
             console.log(`Received HTML length for ${source.name} page ${page}: ${html.length}`);
+            console.log(`First 500 chars: ${html.substring(0, 500)}`); // DEBUG: See what we got
 
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
