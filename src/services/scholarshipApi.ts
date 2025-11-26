@@ -56,7 +56,7 @@ const categorizeScholarship = (name: string, description: string): string[] => {
 const fetchScholarshipsFromSource = async (source: typeof SOURCES[0]): Promise<Scholarship[]> => {
     let allScholarships: Scholarship[] = [];
     let page = 1;
-    const MAX_PAGES = 3; // Reduced from 15 to save bandwidth
+    const MAX_PAGES = 8; // Balanced: enough scholarships without excessive bandwidth
 
     try {
         while (page <= MAX_PAGES) {
@@ -198,7 +198,7 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0]): Promise<S
 
 export const searchScholarships = async (_region: string): Promise<Scholarship[]> => {
     // Check cache first
-    const CACHE_KEY = 'scholarship_cache_v6'; // Bumped version
+    const CACHE_KEY = 'scholarship_cache_v7'; // Bumped to force refresh
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours (increased from 1 hour)
 
     const cachedData = localStorage.getItem(CACHE_KEY);
