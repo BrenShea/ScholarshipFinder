@@ -1,7 +1,8 @@
+```javascript
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getProfile, updateProfile } from '../../services/profileService';
-import { Save, User, Key, BookOpen, CheckCircle } from 'lucide-react';
+import { Save, User, Key, BookOpen, CheckCircle, LogOut } from 'lucide-react';
 import { Quiz } from './Quiz';
 
 export const ProfileSettings = () => {
@@ -261,7 +262,7 @@ export const ProfileSettings = () => {
                 {/* Actions */}
                 <div className="flex items-center justify-between">
                     {message && (
-                        <div className={`px-4 py-2 rounded-lg text-sm ${message.type === 'success' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+                        <div className={`px - 4 py - 2 rounded - lg text - sm ${ message.type === 'success' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400' } `}>
                             {message.text}
                         </div>
                     )}
