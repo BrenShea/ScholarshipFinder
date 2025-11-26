@@ -109,21 +109,16 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0]): Promise<S
 
     try {
         while (page <= MAX_PAGES) {
-            console.log(`Fetching ${source.name} page ${page}...`);
             // Use our Vercel API proxy
             const response = await fetch(`/api/${source.id}/opportunities/external?page=${page}`);
             const html = await response.text();
-            console.log(`Received HTML length for ${source.name} page ${page}: ${html.length}`);
-            console.log(`First 500 chars: ${html.substring(0, 500)}`); // DEBUG: See what we got
 
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
             // Relaxed selector to catch more tables, filtered by content later
             const rows = Array.from(doc.querySelectorAll('tbody tr'));
-            console.log(`Found ${rows.length} rows for ${source.name} page ${page}`);
 
             if (rows.length === 0) {
-                console.log(`No more rows for ${source.name}, stopping.`);
                 break;
             }
 
@@ -140,8 +135,6 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0]): Promise<S
                 const relativeLink = nameLink?.getAttribute('href') || '';
                 const link = relativeLink ? `${source.baseUrl}${relativeLink}` : '';
 
-                console.log(`Row ${index}: Name="${name}", Link="${link}", Amount="${amountText}"`); // DEBUG
-
                 // Fallback for name if link exists but name is empty
                 if (!name && link) {
                     name = 'Scholarship Opportunity';
@@ -149,7 +142,6 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0]): Promise<S
 
                 // If we still don't have a name, or it's "Unknown Scholarship", or no specific link, skip this one
                 if (!name || name === 'Unknown Scholarship' || !link || link === source.baseUrl) {
-                    console.log(`Skipping invalid row ${index}`);
                     return { isValid: false } as any;
                 }
 
@@ -269,12 +261,10 @@ export const searchScholarships = async (_region: string, onProgress?: (count: n
 
     for (let i = 0; i < SOURCES.length; i += BATCH_SIZE) {
         const batch = SOURCES.slice(i, i + BATCH_SIZE);
-        console.log(`Fetching batch ${i / BATCH_SIZE + 1} of ${Math.ceil(SOURCES.length / BATCH_SIZE)}...`);
 
         const batchResults = await Promise.all(
             batch.map(source => fetchScholarshipsFromSource(source)
                 .catch(err => {
-                    console.error(`Error fetching from ${source.name}:`, err);
                     return [];
                 })
             )
