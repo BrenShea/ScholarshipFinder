@@ -27,6 +27,8 @@ const PageTransition = ({ children }: { children: React.ReactNode }) => (
 
 function AppContent() {
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedScholarship, setSelectedScholarship] = useState<Scholarship | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -80,21 +82,30 @@ function AppContent() {
 
   // Load scholarships on mount
   useEffect(() => {
-    const loadScholarships = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const results = await searchScholarships('');
-        setScholarships(results);
-      } catch (err) {
-        setError('Failed to fetch scholarships. Please try again.');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadScholarships();
+    loadScholarships(1);
   }, []);
+
+  const loadScholarships = async (page: number) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { scholarships: results, count } = await searchScholarships(page, 20);
+      setScholarships(results);
+      setTotalCount(count);
+      setCurrentPage(page);
+    } catch (err) {
+      setError('Failed to fetch scholarships. Please try again.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    loadScholarships(newPage);
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleApply = async (scholarshipId: string) => {
     if (!user) {
@@ -312,6 +323,9 @@ function AppContent() {
                         onToggleApply={handleApply}
                         hiddenScholarships={hiddenScholarships}
                         onToggleHide={handleHide}
+                        totalCount={totalCount}
+                        currentPage={currentPage}
+                        onPageChange={handlePageChange}
                       />
                     )}
                   </div>
