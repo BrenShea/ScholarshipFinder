@@ -300,36 +300,51 @@ export const scrapeAndSyncScholarships = async (onProgress?: (count: number) => 
     }
 };
 
-// Updated search function to fetch from Supabase
-export const searchScholarships = async (_region: string, onProgress?: (count: number) => void): Promise<Scholarship[]> => {
-    // Fetch all scholarships from DB
-    console.log('Fetching scholarships from Supabase...');
-    const { data, error } = await supabase
+// Updated search function to fetch from Supabase with Pagination
+export const searchScholarships = async (page: number = 1, limit: number = 20, onProgress?: (count: number) => void): Promise<{ scholarships: Scholarship[], count: number }> => {
+    // Calculate range for Supabase
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    // Fetch from Supabase
+    console.log(`Fetching scholarships page ${page} from Supabase...`);
+
+    // Get count first (or with data)
+    const { count, error: countError } = await supabase
         .from('scholarships')
-        .select('*');
+        .select('*', { count: 'exact', head: true });
 
-    if (error) {
-        console.error('Error fetching scholarships from Supabase:', error);
-        // Fallback to scraping if DB fails
+    if (countError) {
+        console.error('Error fetching count from Supabase:', countError);
         console.log('Falling back to live scraping due to DB error...');
-    } else if (data && data.length > 0) {
-        console.log(`Found ${data.length} scholarships in Supabase.`);
-        // Transform back to Scholarship type
-        const scholarships: Scholarship[] = data.map((row: any) => ({
-            id: row.id,
-            name: row.name,
-            provider: row.university_id,
-            amount: row.amount,
-            deadline: new Date(row.deadline).toLocaleDateString(), // Format back to readable string
-            description: row.description,
-            requirements: row.requirements,
-            region: 'National',
-            url: row.link,
-            categories: categorizeScholarship(row.name, row.description) // Re-categorize on the fly
-        }));
+    } else if (count !== null && count > 0) {
+        // We have data, now fetch the page
+        const { data, error } = await supabase
+            .from('scholarships')
+            .select('*')
+            .range(from, to);
 
-        // Shuffle results
-        return scholarships.sort(() => Math.random() - 0.5);
+        if (error) {
+            console.error('Error fetching data from Supabase:', error);
+        } else if (data) {
+            console.log(`Found ${data.length} scholarships in Supabase (Total: ${count}).`);
+
+            // Transform back to Scholarship type
+            const scholarships: Scholarship[] = data.map((row: any) => ({
+                id: row.id,
+                name: row.name,
+                provider: row.university_id,
+                amount: row.amount,
+                deadline: new Date(row.deadline).toLocaleDateString(),
+                description: row.description,
+                requirements: row.requirements,
+                region: 'National',
+                url: row.link,
+                categories: categorizeScholarship(row.name, row.description)
+            }));
+
+            return { scholarships, count };
+        }
     } else {
         console.log('Supabase table is empty. Falling back to live scraping...');
     }
@@ -339,49 +354,57 @@ export const searchScholarships = async (_region: string, onProgress?: (count: n
     const CACHE_KEY = 'scholarship_cache_v8';
     const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
+    let allResults: Scholarship[] = [];
     const cachedData = localStorage.getItem(CACHE_KEY);
+
     if (cachedData) {
         const { timestamp, data } = JSON.parse(cachedData);
         if (Date.now() - timestamp < CACHE_DURATION) {
-            return data;
+            allResults = data;
         }
     }
 
-    // Batch requests to prevent overwhelming the browser/network
-    const LIVE_BATCH_SIZE = 10; // Aggressive for speed
-    const LIVE_MAX_PAGES = 3; // Shallow for speed
-    const allResults: Scholarship[] = [];
+    if (allResults.length === 0) {
+        // Batch requests to prevent overwhelming the browser/network
+        const LIVE_BATCH_SIZE = 10; // Aggressive for speed
+        const LIVE_MAX_PAGES = 3; // Shallow for speed
 
-    for (let i = 0; i < SOURCES.length; i += LIVE_BATCH_SIZE) {
-        const batch = SOURCES.slice(i, i + LIVE_BATCH_SIZE);
+        for (let i = 0; i < SOURCES.length; i += LIVE_BATCH_SIZE) {
+            const batch = SOURCES.slice(i, i + LIVE_BATCH_SIZE);
 
-        const batchResults = await Promise.all(
-            batch.map(source => fetchScholarshipsFromSource(source, LIVE_MAX_PAGES)
-                .catch(() => {
-                    return [];
-                })
-            )
-        );
+            const batchResults = await Promise.all(
+                batch.map(source => fetchScholarshipsFromSource(source, LIVE_MAX_PAGES)
+                    .catch(() => {
+                        return [];
+                    })
+                )
+            );
 
-        batchResults.forEach(results => allResults.push(...results));
+            batchResults.forEach(results => allResults.push(...results));
 
-        // Notify progress
-        if (onProgress) {
-            onProgress(allResults.length);
+            // Notify progress
+            if (onProgress) {
+                onProgress(allResults.length);
+            }
         }
+
+        // Deduplicate
+        const uniqueScholarships = Array.from(new Map(allResults.map(s => [s.id, s])).values());
+        allResults = uniqueScholarships.sort(() => Math.random() - 0.5);
+
+        // Save to cache
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+            timestamp: Date.now(),
+            data: allResults
+        }));
     }
 
-    // Deduplicate by ID to ensure unique keys
-    const uniqueScholarships = Array.from(new Map(allResults.map(s => [s.id, s])).values());
+    // Simulate pagination for fallback data
+    const startIndex = (page - 1) * limit;
+    const paginatedResults = allResults.slice(startIndex, startIndex + limit);
 
-    // Return all results
-    const finalResults = uniqueScholarships.sort(() => Math.random() - 0.5);
-
-    // Save to cache
-    localStorage.setItem(CACHE_KEY, JSON.stringify({
-        timestamp: Date.now(),
-        data: finalResults
-    }));
-
-    return finalResults;
+    return {
+        scholarships: paginatedResults,
+        count: allResults.length
+    };
 };
