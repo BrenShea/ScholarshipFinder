@@ -1,0 +1,248 @@
+{
+    "rewrites": [
+        {
+            "source": "/api/ucf/:match*",
+            "destination": "https://ucf.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/depaul/:match*",
+            "destination": "https://depaul.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/fiu/:match*",
+            "destination": "https://fiu.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/clc/:match*",
+            "destination": "https://clcillinois.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/slu/:match*",
+            "destination": "https://slu.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/uccs/:match*",
+            "destination": "https://uccs.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/uwm/:match*",
+            "destination": "https://uwm.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/csuchico/:match*",
+            "destination": "https://csuchico.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/utsa/:match*",
+            "destination": "https://utsa.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/umich/:match*",
+            "destination": "https://umich.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/utah/:match*",
+            "destination": "https://utah.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/usu/:match*",
+            "destination": "https://usu.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/humboldt/:match*",
+            "destination": "https://humboldt.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/csusb/:match*",
+            "destination": "https://csusb.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/csulb/:match*",
+            "destination": "https://csulb.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/csun/:match*",
+            "destination": "https://csun.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/csuci/:match*",
+            "destination": "https://csuci.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/cpp/:match*",
+            "destination": "https://cpp.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/fullerton/:match*",
+            "destination": "https://fullerton.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/csus/:match*",
+            "destination": "https://csus.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/towson/:match*",
+            "destination": "https://towson.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/umass/:match*",
+            "destination": "https://umass.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/sfsu/:match*",
+            "destination": "https://sfsu.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/buffalo/:match*",
+            "destination": "https://buffalo.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/uky/:match*",
+            "destination": "https://uky.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/bgsu/:match*",
+            "destination": "https://bgsu.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/csuohio/:match*",
+            "destination": "https://csuohio.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/asu/:match*",
+            "destination": "https://asu.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/uoregon/:match*",
+            "destination": "https://uoregon.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/osu/:match*",
+            "destination": "https://osu.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/psu/:match*",
+            "destination": "https://psu.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/rutgers/:match*",
+            "destination": "https://rutgers.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/temple/:match*",
+            "destination": "https://temple.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/uconn/:match*",
+            "destination": "https://uconn.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/umd/:match*",
+            "destination": "https://umd.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/vt/:match*",
+            "destination": "https://vt.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/ncsu/:match*",
+            "destination": "https://ncsu.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/clemson/:match*",
+            "destination": "https://clemson.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/uga/:match*",
+            "destination": "https://uga.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/ufl/:match*",
+            "destination": "https://ufl.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/usf/:match*",
+            "destination": "https://usf.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/fsu/:match*",
+            "destination": "https://fsu.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/ua/:match*",
+            "destination": "https://ua.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/auburn/:match*",
+            "destination": "https://auburn.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/lsu/:match*",
+            "destination": "https://lsu.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/utexas/:match*",
+            "destination": "https://utexas.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/tamu/:match*",
+            "destination": "https://tamu.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/uh/:match*",
+            "destination": "https://uh.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/ou/:match*",
+            "destination": "https://ou.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/ku/:match*",
+            "destination": "https://ku.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/mizzou/:match*",
+            "destination": "https://mizzou.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/iowa/:match*",
+            "destination": "https://iowa.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/isu/:match*",
+            "destination": "https://isu.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/wisc/:match*",
+            "destination": "https://wisc.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/umn/:match*",
+            "destination": "https://umn.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/msu/:match*",
+            "destination": "https://msu.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/purdue/:match*",
+            "destination": "https://purdue.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/indiana/:match*",
+            "destination": "https://indiana.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/northwestern/:match*",
+            "destination": "https://northwestern.academicworks.com/:match*"
+        },
+        {
+            "source": "/api/uic/:match*",
+            "destination": "https://uic.academicworks.com/:match*"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
+}
