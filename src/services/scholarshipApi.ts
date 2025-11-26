@@ -155,12 +155,19 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0]): Promise<S
 
                 // Validate Date
                 let deadline = deadlineText;
-                // let isValidDate = false; // Unused
-                if (deadlineText && deadlineText.toLowerCase() !== 'see website') {
+                let isValidDate = false;
+
+                if (deadlineText) {
+                    // Check if it's a valid date
                     const date = new Date(deadlineText);
                     if (!isNaN(date.getTime())) {
-                        // isValidDate = true;
+                        isValidDate = true;
                     }
+                }
+
+                // Filter out invalid dates (including "See Website" or empty)
+                if (!isValidDate) {
+                    return { isValid: false } as any;
                 }
 
                 // Extract Requirements
