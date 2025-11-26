@@ -274,7 +274,26 @@ export const ProfileSettings = () => {
                         {saving ? 'Saving...' : 'Save Changes'}
                     </button>
                 </div>
+                <div className="pt-6 border-t border-white/10">
+                    <h3 className="text-lg font-medium text-white mb-4">Troubleshooting</h3>
+                    <button
+                        onClick={() => {
+                            // Clear all scholarship caches
+                            Object.keys(localStorage).forEach(key => {
+                                if (key.startsWith('scholarship_cache')) {
+                                    localStorage.removeItem(key);
+                                }
+                            });
+                            window.location.reload();
+                        }}
+                        className="w-full py-3 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        Reset Scholarship Data (Fix "3 scholarships" bug)
+                    </button>
+                </div>
             </div>
         </div>
-    );
+    </div >
+  );
 };
