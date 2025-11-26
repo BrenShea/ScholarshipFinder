@@ -60,22 +60,21 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0]): Promise<S
 
     try {
         while (page <= MAX_PAGES) {
-            // AcademicWorks pagination usually uses ?page=X
-            const url = `${source.url}?page=${page}`;
-            const response = await fetch(url);
+            console.log(`Fetching ${source.name} page ${page}...`);
+            // Use our Vercel API proxy
+            const response = await fetch(`/api/${source.id}/opportunities/external?page=${page}`);
+            const html = await response.text();
+            console.log(`Received HTML length for ${source.name} page ${page}: ${html.length}`);
 
-            if (!response.ok) {
-                // 404 usually means we ran out of pages
-                break;
-            }
-
-            const htmlText = await response.text();
             const parser = new DOMParser();
-            const doc = parser.parseFromString(htmlText, 'text/html');
+            const doc = parser.parseFromString(html, 'text/html');
+            const rows = Array.from(doc.querySelectorAll('tbody tr'));
+            console.log(`Found ${rows.length} rows for ${source.name} page ${page}`);
 
-            const rows = Array.from(doc.querySelectorAll('table.striped-table tbody tr'));
-
-            if (rows.length === 0) break; // No more results
+            if (rows.length === 0) {
+                console.log(`No more rows for ${source.name}, stopping.`);
+                break;
+            } // No more results
 
             const pageScholarships = rows.map((row, index) => {
                 // Extract Amount
