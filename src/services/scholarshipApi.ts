@@ -69,13 +69,14 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0]): Promise<S
 
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
-            const rows = Array.from(doc.querySelectorAll('table.striped-table tbody tr'));
+            // Relaxed selector to catch more tables, filtered by content later
+            const rows = Array.from(doc.querySelectorAll('tbody tr'));
             console.log(`Found ${rows.length} rows for ${source.name} page ${page}`);
 
             if (rows.length === 0) {
                 console.log(`No more rows for ${source.name}, stopping.`);
                 break;
-            } // No more results
+            }
 
             const pageScholarships = rows.map((row, index) => {
                 // Extract Amount
@@ -90,6 +91,8 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0]): Promise<S
                 const relativeLink = nameLink?.getAttribute('href') || '';
                 const link = relativeLink ? `${source.baseUrl}${relativeLink}` : '';
 
+                console.log(`Row ${index}: Name="${name}", Link="${link}", Amount="${amountText}"`); // DEBUG
+
                 // Fallback for name if link exists but name is empty
                 if (!name && link) {
                     name = 'Scholarship Opportunity';
@@ -97,6 +100,7 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0]): Promise<S
 
                 // If we still don't have a name, or it's "Unknown Scholarship", or no specific link, skip this one
                 if (!name || name === 'Unknown Scholarship' || !link || link === source.baseUrl) {
+                    console.log(`Skipping invalid row ${index}`);
                     return { isValid: false } as any;
                 }
 
