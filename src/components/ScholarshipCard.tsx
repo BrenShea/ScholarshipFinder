@@ -37,22 +37,22 @@ export const ScholarshipCard: React.FC<ScholarshipCardProps> = ({ scholarship, o
 
     return (
         <div
-            className={`glass-card p-6 rounded-2xl hover:scale-[1.02] transition-all group relative overflow-hidden ${isApplied ? 'border-green-500/30 bg-green-500/5' : ''} `}
+            className={`glass-card p-4 md:p-6 rounded-2xl hover:scale-[1.02] transition-all group relative overflow-hidden ${isApplied ? 'border-green-500/30 bg-green-500/5' : ''} `}
         >
-            <div className="flex justify-between items-start mb-4">
-                <div className="flex-1 pr-4">
+            <div className="flex flex-col md:flex-row justify-between items-start mb-4 gap-4 md:gap-0">
+                <div className="flex-1 pr-0 md:pr-4 w-full">
                     <a
                         href={scholarship.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="text-xl font-bold text-white hover:text-primary transition-colors cursor-pointer block mb-1"
+                        className="text-lg md:text-xl font-bold text-white hover:text-primary transition-colors cursor-pointer block mb-1"
                     >
                         {scholarship.name}
                     </a>
                     <p className="text-slate-400 text-sm">{scholarship.provider}</p>
                 </div>
-                <div className="flex flex-col items-end gap-3 shrink-0">
+                <div className="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-3 shrink-0">
                     <div className="bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
                         <span className="text-primary font-semibold text-sm">
                             {scholarship.amount > 0 ? `$${scholarship.amount.toLocaleString()}` : 'Varies'}
@@ -83,13 +83,13 @@ export const ScholarshipCard: React.FC<ScholarshipCardProps> = ({ scholarship, o
             <div className="space-y-3 mt-auto">
                 <div className="flex items-center gap-2 text-sm text-slate-400">
                     <Calendar className="w-4 h-4" />
-                    <span>Deadline: {new Date(scholarship.deadline).toLocaleDateString()}</span>
+                    <span>Deadline: {scholarship.deadline === 'See Website' ? 'See Website' : new Date(scholarship.deadline).toLocaleDateString()}</span>
                 </div>
 
                 <div className="flex gap-3 mt-4 pt-4 border-t border-white/10">
                     <button
                         onClick={handleTailorEssay}
-                        className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                        className="flex-1 bg-white/10 hover:bg-white/20 text-white py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base"
                     >
                         <BookOpen className="w-4 h-4" />
                         Tailor Essay
