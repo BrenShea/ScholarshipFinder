@@ -1,4 +1,3 @@
-import React from 'react';
 import { Key, BookOpen, Lightbulb, ExternalLink, ChevronRight } from 'lucide-react';
 
 export const Tutorials = () => {

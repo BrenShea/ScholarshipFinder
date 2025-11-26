@@ -1,7 +1,6 @@
 import React from 'react';
-import { Calendar, DollarSign, ExternalLink, BookOpen, Sparkles, CheckCircle, XCircle } from 'lucide-react';
+import { Calendar, ExternalLink, BookOpen, CheckCircle, XCircle } from 'lucide-react';
 import type { Scholarship } from '../types';
-import { cn } from '../lib/utils';
 
 interface ScholarshipCardProps {
     scholarship: Scholarship;

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, MapPin } from 'lucide-react';
+import React from 'react';
+import { Search } from 'lucide-react';
 
 interface SearchFormProps {
     onSearch: (region: string) => void;
