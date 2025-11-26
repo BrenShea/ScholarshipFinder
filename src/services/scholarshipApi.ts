@@ -249,7 +249,7 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0]): Promise<S
     return allScholarships;
 };
 
-export const searchScholarships = async (_region: string): Promise<Scholarship[]> => {
+export const searchScholarships = async (_region: string, onProgress?: (count: number) => void): Promise<Scholarship[]> => {
     // Check cache first
     const CACHE_KEY = 'scholarship_cache_v8'; // Bumped version
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours (increased from 1 hour)
@@ -263,14 +263,33 @@ export const searchScholarships = async (_region: string): Promise<Scholarship[]
         }
     }
 
-    // Fetch from all sources in parallel
-    const results = await Promise.all(SOURCES.map(fetchScholarshipsFromSource));
+    // Batch requests to prevent overwhelming the browser/network
+    const BATCH_SIZE = 5;
+    const allResults: Scholarship[] = [];
 
-    // Flatten results
-    const allScholarships = results.flat();
+    for (let i = 0; i < SOURCES.length; i += BATCH_SIZE) {
+        const batch = SOURCES.slice(i, i + BATCH_SIZE);
+        console.log(`Fetching batch ${i / BATCH_SIZE + 1} of ${Math.ceil(SOURCES.length / BATCH_SIZE)}...`);
+
+        const batchResults = await Promise.all(
+            batch.map(source => fetchScholarshipsFromSource(source)
+                .catch(err => {
+                    console.error(`Error fetching from ${source.name}:`, err);
+                    return [];
+                })
+            )
+        );
+
+        batchResults.forEach(results => allResults.push(...results));
+
+        // Notify progress
+        if (onProgress) {
+            onProgress(allResults.length);
+        }
+    }
 
     // Deduplicate by ID to ensure unique keys
-    const uniqueScholarships = Array.from(new Map(allScholarships.map(s => [s.id, s])).values());
+    const uniqueScholarships = Array.from(new Map(allResults.map(s => [s.id, s])).values());
 
     // Return all results (User requested to remove region lock)
     // We shuffle them slightly so it's not just blocks of universities
