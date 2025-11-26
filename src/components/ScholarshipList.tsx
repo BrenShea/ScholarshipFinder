@@ -104,7 +104,10 @@ export function ScholarshipList({ scholarships, onSelect, isLoading, appliedScho
     if (scholarships.length === 0) {
         return (
             <div className="text-center py-12">
-                <p className="text-slate-400 text-lg">No scholarships found.</p>
+                <p className="text-slate-400 text-lg mb-4">No scholarships found.</p>
+                <p className="text-slate-500 text-sm">
+                    If this is unexpected, try syncing the database in <a href="/profile" className="text-primary hover:underline">Profile Settings</a>.
+                </p>
             </div>
         );
     }
