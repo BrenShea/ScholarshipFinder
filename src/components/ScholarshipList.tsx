@@ -147,8 +147,8 @@ export function ScholarshipList({ scholarships, onSelect, isLoading, appliedScho
             </div>
 
             {totalPages > 1 && (
-                <div className="flex justify-between items-center mb-6">
-                    <div className="text-slate-400 text-sm">
+                <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <div className="text-slate-400 text-sm hidden md:block">
                         Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, sortedScholarships.length)} of {sortedScholarships.length} scholarships
                     </div>
 
