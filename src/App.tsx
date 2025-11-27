@@ -344,6 +344,7 @@ function AppContent() {
                             activeTab === 'hidden' ? 'Not Doing' :
                               'Available Scholarships'
                         }
+                        hideCount={activeTab !== 'available'}
                       />
                     )}
                   </div>

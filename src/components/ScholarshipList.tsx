@@ -17,11 +17,12 @@ interface ScholarshipListProps {
     currentPage?: number;
     onPageChange?: (page: number) => void;
     title?: string;
+    hideCount?: boolean;
 }
 
 type SortOption = 'relevance' | 'amount-high' | 'amount-low' | 'deadline';
 
-export function ScholarshipList({ scholarships, onSelect, isLoading, appliedScholarships, onToggleApply, hiddenScholarships, onToggleHide, totalCount, currentPage = 1, onPageChange, title = 'Available Scholarships' }: ScholarshipListProps) {
+export function ScholarshipList({ scholarships, onSelect, isLoading, appliedScholarships, onToggleApply, hiddenScholarships, onToggleHide, totalCount, currentPage = 1, onPageChange, title = 'Available Scholarships', hideCount = false }: ScholarshipListProps) {
     const [sortOption, setSortOption] = useState<SortOption>('relevance');
     const [userQuizAnswers, setUserQuizAnswers] = useState<Record<string, string>>({});
     const { user } = useAuth();
@@ -128,9 +129,11 @@ export function ScholarshipList({ scholarships, onSelect, isLoading, appliedScho
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                 <h3 className="text-2xl font-bold text-white flex items-center gap-3">
                     {title}
-                    <span className="text-sm font-normal text-slate-400 bg-white/5 px-3 py-1 rounded-full">
-                        {effectiveTotalCount} found
-                    </span>
+                    {!hideCount && (
+                        <span className="text-sm font-normal text-slate-400 bg-white/5 px-3 py-1 rounded-full">
+                            {effectiveTotalCount} found
+                        </span>
+                    )}
                 </h3>
 
                 <div className="flex items-center gap-3">
