@@ -339,6 +339,11 @@ function AppContent() {
                         totalCount={totalCount}
                         currentPage={currentPage}
                         onPageChange={handlePageChange}
+                        title={
+                          activeTab === 'completed' ? 'Completed Scholarships' :
+                            activeTab === 'hidden' ? 'Not Doing' :
+                              'Available Scholarships'
+                        }
                       />
                     )}
                   </div>
