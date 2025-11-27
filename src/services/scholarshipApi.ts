@@ -122,7 +122,7 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0], maxPages: 
                 break;
             }
 
-            const pageScholarships = rows.map((row, index) => {
+            const pageScholarships = rows.map((row) => {
                 // Extract Amount
                 const amountCell = row.querySelector('td.strong.h4');
                 const amountText = amountCell?.textContent?.trim() || '$0';
@@ -216,8 +216,14 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0], maxPages: 
 
                 const categories = categorizeScholarship(name, description);
 
+                // Generate a stable ID based on content rather than position
+                // This ensures that if the order changes, the ID remains the same,
+                // allowing user applied/hidden status to persist correctly across scrapes/devices.
+                const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                const stableId = `${source.id}-${slug}-${amount}`;
+
                 return {
-                    id: `${source.id}-p${page}-${index}`,
+                    id: stableId,
                     name: name,
                     provider: `${source.name} External Opportunities`,
                     amount: amount, // Keep 0 if not found, UI can handle it

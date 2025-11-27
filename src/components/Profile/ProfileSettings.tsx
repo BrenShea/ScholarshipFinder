@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getProfile, updateProfile } from '../../services/profileService';
-import { scrapeAndSyncScholarships } from '../../services/scholarshipApi';
-import { Save, User, Key, BookOpen, CheckCircle, LogOut } from 'lucide-react';
+import { Save, User, Key, BookOpen, CheckCircle } from 'lucide-react';
 import { Quiz } from './Quiz';
 
 export const ProfileSettings = () => {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [syncing, setSyncing] = useState(false);
-    const [syncProgress, setSyncProgress] = useState(0);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     // Form state
@@ -277,48 +274,7 @@ export const ProfileSettings = () => {
                         {saving ? 'Saving...' : 'Save Changes'}
                     </button>
                 </div>
-                <div className="pt-6 border-t border-white/10 space-y-4">
-                    <h3 className="text-lg font-medium text-white">Admin & Troubleshooting</h3>
-
-                    <button
-                        onClick={async () => {
-                            if (syncing) return;
-                            setSyncing(true);
-                            setSyncProgress(0);
-                            try {
-                                await scrapeAndSyncScholarships((count) => setSyncProgress(count));
-                                setMessage({ type: 'success', text: `Database synced! Added/Updated ${syncProgress} scholarships.` });
-                            } catch (error) {
-                                setMessage({ type: 'error', text: 'Failed to sync database.' });
-                            } finally {
-                                setSyncing(false);
-                            }
-                        }}
-                        disabled={syncing}
-                        className="w-full py-3 px-4 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
-                    >
-                        <Save className="w-4 h-4" />
-                        {syncing ? `Syncing Database... (${syncProgress})` : 'Admin: Scrape & Sync Database'}
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            // Clear all scholarship caches
-                            Object.keys(localStorage).forEach(key => {
-                                if (key.startsWith('scholarship_cache')) {
-                                    localStorage.removeItem(key);
-                                }
-                            });
-                            window.location.reload();
-                        }}
-                        className="w-full py-3 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
-                    >
-                        <LogOut className="w-4 h-4" />
-                        Reset Local Cache (Fix "3 scholarships" bug)
-                    </button>
-                </div>
             </div>
         </div>
-
     );
 };
