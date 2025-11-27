@@ -414,3 +414,30 @@ export const searchScholarships = async (page: number = 1, limit: number = 20, o
         count: allResults.length
     };
 };
+
+export const getScholarshipsByIds = async (ids: string[]): Promise<Scholarship[]> => {
+    if (!ids.length) return [];
+
+    const { data, error } = await supabase
+        .from('scholarships')
+        .select('*')
+        .in('id', ids);
+
+    if (error) {
+        console.error('Error fetching scholarships by IDs:', error);
+        return [];
+    }
+
+    return data.map((row: any) => ({
+        id: row.id,
+        name: row.name,
+        provider: row.university_id,
+        amount: row.amount,
+        deadline: new Date(row.deadline).toLocaleDateString(),
+        description: row.description,
+        requirements: row.requirements,
+        region: 'National',
+        url: row.link,
+        categories: categorizeScholarship(row.name, row.description)
+    }));
+};

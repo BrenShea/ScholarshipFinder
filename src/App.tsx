@@ -53,6 +53,8 @@ function AppContent() {
     onConfirm: () => { },
   });
 
+  const [savedScholarships, setSavedScholarships] = useState<Scholarship[]>([]);
+
   // Load API key and applied scholarships from profile when user logs in
   useEffect(() => {
     const loadUserData = async () => {
@@ -95,6 +97,29 @@ function AppContent() {
   useEffect(() => {
     loadScholarships(1);
   }, []);
+
+  // Fetch saved scholarships when tab changes or IDs change
+  useEffect(() => {
+    const fetchSaved = async () => {
+      if (activeTab === 'completed' && appliedScholarships.length > 0) {
+        setIsLoading(true);
+        const data = await import('./services/scholarshipApi').then(m => m.getScholarshipsByIds(appliedScholarships));
+        setSavedScholarships(data);
+        setIsLoading(false);
+      } else if (activeTab === 'hidden' && hiddenScholarships.length > 0) {
+        setIsLoading(true);
+        const data = await import('./services/scholarshipApi').then(m => m.getScholarshipsByIds(hiddenScholarships));
+        setSavedScholarships(data);
+        setIsLoading(false);
+      } else if (activeTab === 'available') {
+        // Ensure we have the main list loaded (might have been cleared or we just want to be sure)
+        if (scholarships.length === 0) {
+          loadScholarships(1);
+        }
+      }
+    };
+    fetchSaved();
+  }, [activeTab, appliedScholarships, hiddenScholarships]);
 
   const loadScholarships = async (page: number) => {
     setIsLoading(true);
@@ -190,7 +215,7 @@ function AppContent() {
 
   // Filter scholarships based on active tab
   // Filter scholarships based on active tab, category, and search query
-  const filteredScholarships = scholarships.filter(s => {
+  const filteredScholarships = (activeTab === 'available' ? scholarships : savedScholarships).filter(s => {
     const isApplied = appliedScholarships.includes(s.id);
     const isHidden = hiddenScholarships.includes(s.id);
 
