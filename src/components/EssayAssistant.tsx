@@ -93,7 +93,7 @@ export const EssayAssistant: React.FC<EssayAssistantProps> = ({ scholarship, onC
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-hidden flex flex-col lg:flex-row gap-4">
+                <div className="flex-1 overflow-y-auto lg:overflow-hidden flex flex-col lg:flex-row gap-4">
                     {/* Input Section */}
                     <div className="lg:w-2/5 p-6 flex flex-col overflow-y-auto border-b lg:border-b-0 lg:border-r border-white/10">
                         {!baseEssay && (
@@ -153,8 +153,8 @@ export const EssayAssistant: React.FC<EssayAssistantProps> = ({ scholarship, onC
                                         <button
                                             onClick={onToggleApply}
                                             className={`flex items-center gap-1.5 text-xs font-medium transition-colors px-3 py-1.5 rounded-md border ${isApplied
-                                                    ? 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'
-                                                    : 'bg-white/5 text-slate-400 border-white/10 hover:text-white hover:bg-white/10'
+                                                ? 'bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20'
+                                                : 'bg-white/5 text-slate-400 border-white/10 hover:text-white hover:bg-white/10'
                                                 }`}
                                         >
                                             <CheckCircle className="w-3.5 h-3.5" />

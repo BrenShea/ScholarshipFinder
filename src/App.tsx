@@ -198,52 +198,54 @@ function AppContent() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6">
-        <div className="flex justify-between items-center mb-8">
-          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <div className="p-3 bg-primary/10 rounded-xl">
-              <GraduationCap className="w-8 h-8 text-primary" />
+        <div className="flex justify-between items-center mb-6 md:mb-8 gap-4">
+          <Link to="/" className="flex items-center gap-2 md:gap-3 hover:opacity-80 transition-opacity shrink-0">
+            <div className="p-2 md:p-3 bg-primary/10 rounded-xl">
+              <GraduationCap className="w-6 h-6 md:w-8 md:h-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">ScholarshipFinder</h1>
-              <p className="text-slate-400 text-sm">Find funding for your education</p>
+              <h1 className="text-lg md:text-2xl font-bold text-white">ScholarshipFinder</h1>
+              <p className="text-slate-400 text-sm hidden md:block">Find funding for your education</p>
             </div>
           </Link>
 
-          <div className="flex items-center gap-6">
-            <Link to="/tutorials" className="text-slate-300 hover:text-white font-medium text-sm transition-colors flex items-center gap-2">
+          <div className="flex items-center gap-3 md:gap-6">
+            <Link to="/tutorials" className="text-slate-300 hover:text-white font-medium text-sm transition-colors flex items-center gap-2 p-2 md:p-0 bg-white/5 md:bg-transparent rounded-lg md:rounded-none">
               <BookOpen className="w-4 h-4" />
-              Tutorials
+              <span className="hidden md:inline">Tutorials</span>
             </Link>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
               {user ? (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 md:gap-3">
                   <Link
                     to="/profile"
-                    className="flex items-center gap-2 px-4 py-2 bg-dark-lighter hover:bg-white/5 rounded-lg text-sm font-medium text-white transition-colors border border-white/5"
+                    className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 bg-dark-lighter hover:bg-white/5 rounded-lg text-sm font-medium text-white transition-colors border border-white/5"
+                    title="Settings"
                   >
                     <Settings className="w-4 h-4" />
-                    Settings
+                    <span className="hidden md:inline">Settings</span>
                   </Link>
                   <button
                     onClick={() => signOut()}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-sm font-medium transition-colors border border-red-500/10"
+                    className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-sm font-medium transition-colors border border-red-500/10"
+                    title="Sign Out"
                   >
                     <LogOut className="w-4 h-4" />
-                    Sign Out
+                    <span className="hidden md:inline">Sign Out</span>
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 md:gap-3">
                   <Link
                     to="/login"
-                    className="text-slate-300 hover:text-white font-medium text-sm transition-colors"
+                    className="text-slate-300 hover:text-white font-medium text-xs md:text-sm transition-colors"
                   >
                     Log In
                   </Link>
                   <Link
                     to="/signup"
-                    className="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-sm font-medium transition-colors shadow-lg shadow-primary/20"
+                    className="px-3 py-1.5 md:px-4 md:py-2 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs md:text-sm font-medium transition-colors shadow-lg shadow-primary/20"
                   >
                     Sign Up
                   </Link>
@@ -275,7 +277,7 @@ function AppContent() {
                     <div className="flex gap-2 w-full md:w-auto">
                       <button
                         onClick={() => setActiveTab('available')}
-                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === 'available'
+                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all ${activeTab === 'available'
                           ? 'bg-primary text-white shadow-lg shadow-primary/20'
                           : 'text-slate-400 hover:text-white hover:bg-white/5'
                           }`}
@@ -285,7 +287,7 @@ function AppContent() {
                       </button>
                       <button
                         onClick={() => setActiveTab('completed')}
-                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === 'completed'
+                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all ${activeTab === 'completed'
                           ? 'bg-green-500 text-white shadow-lg shadow-green-500/20'
                           : 'text-slate-400 hover:text-white hover:bg-white/5'
                           }`}
@@ -295,7 +297,7 @@ function AppContent() {
                       </button>
                       <button
                         onClick={() => setActiveTab('hidden')}
-                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${activeTab === 'hidden'
+                        className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs md:text-sm font-medium transition-all ${activeTab === 'hidden'
                           ? 'bg-red-500 text-white shadow-lg shadow-red-500/20'
                           : 'text-slate-400 hover:text-white hover:bg-white/5'
                           }`}

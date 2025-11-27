@@ -40,25 +40,25 @@ export const ScholarshipCard: React.FC<ScholarshipCardProps> = ({ scholarship, o
             className={`glass-card p-4 md:p-6 rounded-2xl hover:scale-[1.02] transition-all group relative overflow-hidden ${isApplied ? 'border-green-500/30 bg-green-500/5' : ''} `}
         >
             <div className="flex flex-col md:flex-row justify-between items-start mb-4 gap-4 md:gap-0">
-                <div className="flex-1 pr-0 md:pr-4 w-full">
+                <div className="flex-1 pr-0 md:pr-4 w-full min-w-0">
                     <a
                         href={scholarship.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="text-lg md:text-xl font-bold text-white hover:text-primary transition-colors cursor-pointer block mb-1"
+                        className="text-lg md:text-xl font-bold text-white hover:text-primary transition-colors cursor-pointer block mb-1 break-words"
                     >
                         {scholarship.name}
                     </a>
                     <p className="text-slate-400 text-sm">{scholarship.provider}</p>
                 </div>
-                <div className="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-3 shrink-0">
-                    <div className="bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+                <div className="flex flex-row md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-3 shrink-0 flex-wrap md:flex-nowrap">
+                    <div className="bg-primary/10 px-3 py-1 rounded-full border border-primary/20 whitespace-nowrap">
                         <span className="text-primary font-semibold text-sm">
                             {scholarship.amount > 0 ? `$${scholarship.amount.toLocaleString()}` : 'Varies'}
                         </span>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 shrink-0">
                         <button
                             onClick={handleApply}
                             className={`p-2 rounded-full transition-colors ${isApplied ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'} `}
