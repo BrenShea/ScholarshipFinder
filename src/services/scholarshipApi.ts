@@ -357,7 +357,7 @@ export const searchScholarships = async (page: number = 1, limit: number = 20, o
 
     // --- FALLBACK: Live Scraping (if DB is empty or error) ---
     // Check cache first
-    const CACHE_KEY = 'scholarship_cache_v8';
+    const CACHE_KEY = 'scholarship_cache_v9';
     const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
     let allResults: Scholarship[] = [];
