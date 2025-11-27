@@ -405,22 +405,31 @@ export const searchScholarships = async (page: number = 1, limit: number = 20, o
         }));
 
         // Sync to Supabase in background (fire and forget)
-        const dbRows = allResults.map(s => ({
-            id: s.id,
-            name: s.name,
-            amount: s.amount,
-            deadline: new Date(s.deadline).toISOString(),
-            link: s.url,
-            description: s.description,
-            requirements: s.requirements,
-            university_id: s.provider,
-            updated_at: new Date().toISOString()
-        }));
+        const dbRows = allResults.map(s => {
+            const date = new Date(s.deadline);
+            // Check if valid date
+            if (isNaN(date.getTime())) {
+                return null;
+            }
+            return {
+                id: s.id,
+                name: s.name,
+                amount: s.amount,
+                deadline: date.toISOString(),
+                link: s.url,
+                description: s.description,
+                requirements: s.requirements,
+                university_id: s.provider,
+                updated_at: new Date().toISOString()
+            };
+        }).filter(row => row !== null);
 
-        supabase.from('scholarships').upsert(dbRows, { onConflict: 'id' }).then(({ error }) => {
-            if (error) console.error('Background sync to Supabase failed:', error);
-            else console.log('Background sync to Supabase successful');
-        });
+        if (dbRows.length > 0) {
+            supabase.from('scholarships').upsert(dbRows, { onConflict: 'id' }).then(({ error }) => {
+                if (error) console.error('Background sync to Supabase failed:', error);
+                else console.log('Background sync to Supabase successful');
+            });
+        }
     }
 
     // Simulate pagination for fallback data
