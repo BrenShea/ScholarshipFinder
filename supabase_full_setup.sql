@@ -19,14 +19,17 @@ CREATE TABLE IF NOT EXISTS profiles (
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
 -- Profiles Policies
+DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
 CREATE POLICY "Users can view own profile" 
   ON profiles FOR SELECT 
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 CREATE POLICY "Users can update own profile" 
   ON profiles FOR UPDATE 
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
 CREATE POLICY "Users can insert own profile" 
   ON profiles FOR INSERT 
   WITH CHECK (auth.uid() = id);
@@ -50,18 +53,20 @@ CREATE TABLE IF NOT EXISTS scholarships (
 ALTER TABLE scholarships ENABLE ROW LEVEL SECURITY;
 
 -- Scholarships Policies (Public read, Service role write)
+DROP POLICY IF EXISTS "Public read access to scholarships" ON scholarships;
 CREATE POLICY "Public read access to scholarships"
   ON scholarships FOR SELECT
   TO public
   USING (true);
 
 -- Allow authenticated users to insert/update (if client-side scraping is used)
--- Ideally this should be service-role only, but for this app architecture:
+DROP POLICY IF EXISTS "Authenticated users can sync scholarships" ON scholarships;
 CREATE POLICY "Authenticated users can sync scholarships"
   ON scholarships FOR INSERT
   TO authenticated
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Authenticated users can update scholarships" ON scholarships;
 CREATE POLICY "Authenticated users can update scholarships"
   ON scholarships FOR UPDATE
   TO authenticated
@@ -83,18 +88,22 @@ CREATE TABLE IF NOT EXISTS user_scholarships (
 ALTER TABLE user_scholarships ENABLE ROW LEVEL SECURITY;
 
 -- User Scholarships Policies
+DROP POLICY IF EXISTS "Users can view their own scholarships" ON user_scholarships;
 CREATE POLICY "Users can view their own scholarships"
   ON user_scholarships FOR SELECT
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert their own scholarships" ON user_scholarships;
 CREATE POLICY "Users can insert their own scholarships"
   ON user_scholarships FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their own scholarships" ON user_scholarships;
 CREATE POLICY "Users can update their own scholarships"
   ON user_scholarships FOR UPDATE
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete their own scholarships" ON user_scholarships;
 CREATE POLICY "Users can delete their own scholarships"
   ON user_scholarships FOR DELETE
   USING (auth.uid() = user_id);
@@ -111,6 +120,7 @@ CREATE TABLE IF NOT EXISTS app_config (
 
 ALTER TABLE app_config ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Allow public read access to app_config" ON app_config;
 CREATE POLICY "Allow public read access to app_config"
   ON app_config FOR SELECT
   TO public
