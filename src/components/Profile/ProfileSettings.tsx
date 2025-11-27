@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getProfile, updateProfile } from '../../services/profileService';
 import { Save, User, Key, BookOpen, CheckCircle } from 'lucide-react';
@@ -20,11 +21,15 @@ export const ProfileSettings = () => {
     const [apiKey, setApiKey] = useState('');
     const [showQuiz, setShowQuiz] = useState(false);
 
+    const navigate = useNavigate();
+
     useEffect(() => {
-        if (user) {
+        if (!loading && !user) {
+            navigate('/login');
+        } else if (user) {
             loadProfile();
         }
-    }, [user]);
+    }, [user, loading, navigate]);
 
     const loadProfile = async () => {
         if (!user) return;

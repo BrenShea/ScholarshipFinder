@@ -263,7 +263,10 @@ function AppContent() {
                     <span className="hidden md:inline">Settings</span>
                   </Link>
                   <button
-                    onClick={() => signOut()}
+                    onClick={async () => {
+                      await signOut();
+                      window.location.href = '/'; // Force a hard refresh to clear any lingering state
+                    }}
                     className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-sm font-medium transition-colors border border-red-500/10"
                     title="Sign Out"
                   >
