@@ -77,7 +77,18 @@ function AppContent() {
         setHiddenScholarships([]);
       }
     };
+
     loadUserData();
+
+    // Refetch on window focus to keep in sync with other devices
+    const onFocus = () => {
+      if (user) {
+        loadUserData();
+      }
+    };
+
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
   }, [user]);
 
   // Load scholarships on mount
