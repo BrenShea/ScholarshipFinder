@@ -30,7 +30,7 @@ export function ScholarshipList({ scholarships, onSelect, isLoading, appliedScho
 
     useEffect(() => {
         if (user) {
-            getProfile(user.id).then(profile => {
+            getProfile(user.uid).then(profile => {
                 if (profile?.quiz_answers) {
                     setUserQuizAnswers(profile.quiz_answers);
                 }

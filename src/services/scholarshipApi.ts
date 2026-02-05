@@ -1,7 +1,9 @@
-import { supabase } from './supabaseClient';
+import { db } from './firebaseConfig';
+import { collection, getDocs, query, limit, startAfter, orderBy, doc, writeBatch, getDoc, getCountFromServer, QueryDocumentSnapshot, type DocumentData } from 'firebase/firestore';
 import type { Scholarship } from '../types';
 
 const SOURCES = [
+    // Original sources
     { id: 'ucf', name: 'UCF', url: '/api/ucf/opportunities/external', baseUrl: 'https://ucf.academicworks.com' },
     { id: 'depaul', name: 'DePaul', url: '/api/depaul/opportunities/external', baseUrl: 'https://depaul.academicworks.com' },
     { id: 'fiu', name: 'FIU', url: '/api/fiu/opportunities/external', baseUrl: 'https://fiu.academicworks.com' },
@@ -62,6 +64,27 @@ const SOURCES = [
     { id: 'indiana', name: 'Indiana', url: '/api/indiana/opportunities/external', baseUrl: 'https://indiana.academicworks.com' },
     { id: 'northwestern', name: 'Northwestern', url: '/api/northwestern/opportunities/external', baseUrl: 'https://northwestern.academicworks.com' },
     { id: 'uic', name: 'UIC', url: '/api/uic/opportunities/external', baseUrl: 'https://uic.academicworks.com' },
+    // NEW SOURCES - Adding 15+ more universities
+    { id: 'berkeley', name: 'UC Berkeley', url: '/api/berkeley/opportunities/external', baseUrl: 'https://berkeley.academicworks.com' },
+    { id: 'ucla', name: 'UCLA', url: '/api/ucla/opportunities/external', baseUrl: 'https://ucla.academicworks.com' },
+    { id: 'ucsd', name: 'UC San Diego', url: '/api/ucsd/opportunities/external', baseUrl: 'https://ucsd.academicworks.com' },
+    { id: 'ucdavis', name: 'UC Davis', url: '/api/ucdavis/opportunities/external', baseUrl: 'https://ucdavis.academicworks.com' },
+    { id: 'uci', name: 'UC Irvine', url: '/api/uci/opportunities/external', baseUrl: 'https://uci.academicworks.com' },
+    { id: 'uw', name: 'UW', url: '/api/uw/opportunities/external', baseUrl: 'https://uw.academicworks.com' },
+    { id: 'colorado', name: 'CU Boulder', url: '/api/colorado/opportunities/external', baseUrl: 'https://colorado.academicworks.com' },
+    { id: 'bu', name: 'Boston University', url: '/api/bu/opportunities/external', baseUrl: 'https://bu.academicworks.com' },
+    { id: 'nyu', name: 'NYU', url: '/api/nyu/opportunities/external', baseUrl: 'https://nyu.academicworks.com' },
+    { id: 'syracuse', name: 'Syracuse', url: '/api/syracuse/opportunities/external', baseUrl: 'https://syracuse.academicworks.com' },
+    { id: 'pitt', name: 'Pittsburgh', url: '/api/pitt/opportunities/external', baseUrl: 'https://pitt.academicworks.com' },
+    { id: 'sc', name: 'South Carolina', url: '/api/sc/opportunities/external', baseUrl: 'https://sc.academicworks.com' },
+    { id: 'utk', name: 'Tennessee', url: '/api/utk/opportunities/external', baseUrl: 'https://utk.academicworks.com' },
+    { id: 'uark', name: 'Arkansas', url: '/api/uark/opportunities/external', baseUrl: 'https://uark.academicworks.com' },
+    { id: 'unl', name: 'Nebraska', url: '/api/unl/opportunities/external', baseUrl: 'https://unl.academicworks.com' },
+    { id: 'wvu', name: 'West Virginia', url: '/api/wvu/opportunities/external', baseUrl: 'https://wvu.academicworks.com' },
+    { id: 'uva', name: 'Virginia', url: '/api/uva/opportunities/external', baseUrl: 'https://uva.academicworks.com' },
+    { id: 'unc', name: 'UNC Chapel Hill', url: '/api/unc/opportunities/external', baseUrl: 'https://unc.academicworks.com' },
+    { id: 'duke', name: 'Duke', url: '/api/duke/opportunities/external', baseUrl: 'https://duke.academicworks.com' },
+    { id: 'gatech', name: 'Georgia Tech', url: '/api/gatech/opportunities/external', baseUrl: 'https://gatech.academicworks.com' },
 ];
 
 const categorizeScholarship = (name: string, description: string): string[] => {
@@ -115,7 +138,6 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0], maxPages: 
 
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
-            // Relaxed selector to catch more tables, filtered by content later
             const rows = Array.from(doc.querySelectorAll('tbody tr'));
 
             if (rows.length === 0) {
@@ -135,12 +157,10 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0], maxPages: 
                 const relativeLink = nameLink?.getAttribute('href') || '';
                 const link = relativeLink ? `${source.baseUrl}${relativeLink}` : '';
 
-                // Fallback for name if link exists but name is empty
                 if (!name && link) {
                     name = 'Scholarship Opportunity';
                 }
 
-                // If we still don't have a name, or it's "Unknown Scholarship", or no specific link, skip this one
                 if (!name || name === 'Unknown Scholarship' || !link || link === source.baseUrl) {
                     return { isValid: false } as any;
                 }
@@ -153,37 +173,33 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0], maxPages: 
                 const dateSpan = row.querySelector('td.center span.mq-no-bp-only');
                 const deadlineText = dateSpan?.textContent?.trim() || '';
 
-                // Validate Date
                 let deadline = deadlineText;
                 let isValidDate = false;
 
                 if (deadlineText) {
-                    // Check if it's a valid date
                     const date = new Date(deadlineText);
                     if (!isNaN(date.getTime())) {
                         isValidDate = true;
                     }
                 }
 
-                // Filter out invalid dates (including "See Website" or empty)
                 if (!isValidDate) {
                     return { isValid: false } as any;
                 }
 
                 // Extract Requirements
-                // Clean up description first
                 const cleanDesc = description
-                    .replace(/\r\n|\n|\r/g, ' ') // Remove newlines
-                    .replace(/\s+/g, ' ') // Normalize spaces
-                    .replace(/(\d)\. (\d)/g, '$1.$2'); // Fix broken decimals like 3. 0 GPA
+                    .replace(/\r\n|\n|\r/g, ' ')
+                    .replace(/\s+/g, ' ')
+                    .replace(/(\d)\. (\d)/g, '$1.$2');
 
                 let requirements = cleanDesc
-                    .split(/(?<=[.?!;])\s+(?=[A-Z])/) // Split by sentence endings followed by a capital letter
+                    .split(/(?<=[.?!;])\s+(?=[A-Z])/)
                     .map(s => s.trim())
                     .filter(s => {
                         const lower = s.toLowerCase();
-                        return s.length > 15 && // Increased min length
-                            s.length < 200 && // Avoid massive paragraphs
+                        return s.length > 15 &&
+                            s.length < 200 &&
                             !lower.includes('click here') &&
                             !lower.includes('apply button') &&
                             (
@@ -201,8 +217,6 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0], maxPages: 
                     .slice(0, 5);
 
                 if (requirements.length === 0) {
-                    // Fallback: Try to find a list in the raw HTML if we could access it, 
-                    // but since we only have text, let's try a looser split if the strict one failed
                     requirements = cleanDesc
                         .split(/[.;]/)
                         .map(s => s.trim())
@@ -216,9 +230,6 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0], maxPages: 
 
                 const categories = categorizeScholarship(name, description);
 
-                // Generate a stable ID based on content rather than position
-                // This ensures that if the order changes, the ID remains the same,
-                // allowing user applied/hidden status to persist correctly across scrapes/devices.
                 const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
                 const stableId = `${source.id}-${slug}-${amount}`;
 
@@ -226,38 +237,43 @@ const fetchScholarshipsFromSource = async (source: typeof SOURCES[0], maxPages: 
                     id: stableId,
                     name: name,
                     provider: `${source.name} External Opportunities`,
-                    amount: amount, // Keep 0 if not found, UI can handle it
+                    amount: amount,
                     deadline: deadline || 'See Website',
                     description: description,
                     requirements: requirements,
                     region: 'National',
                     url: link,
-                    isValid: true, // Relaxed filtering: accept all parsed items
+                    isValid: true,
                     categories: categories
                 };
             });
 
-            // Remove the temporary isValid flag before adding to list
-            const validScholarships = pageScholarships.map(({ isValid, ...s }) => s as Scholarship);
+            const validScholarships = pageScholarships
+                .filter((s: any) => s.isValid)
+                .map(({ isValid, ...s }: any) => s as Scholarship);
 
             allScholarships = [...allScholarships, ...validScholarships];
 
-            // If we found nothing on this page, stop
             if (rows.length === 0) break;
-
             page++;
         }
     } catch (error) {
-        // console.error(`Error scraping ${source.name}:`, error);
+        // Silently fail for individual sources
     }
 
     return allScholarships;
 };
 
-// New function to scrape and sync to Supabase
+// Firestore collection reference
+const scholarshipsCollection = collection(db, 'scholarships');
+
+// Cache for cursor-based pagination
+let lastDocumentCache: Map<number, QueryDocumentSnapshot<DocumentData>> = new Map();
+
+// Scrape and sync to Firestore
 export const scrapeAndSyncScholarships = async (onProgress?: (count: number) => void): Promise<void> => {
-    const SYNC_BATCH_SIZE = 5; // Be gentle for deep sync
-    const SYNC_MAX_PAGES = 8; // Go deep
+    const SYNC_BATCH_SIZE = 5;
+    const SYNC_MAX_PAGES = 8;
     let totalSynced = 0;
 
     for (let i = 0; i < SOURCES.length; i += SYNC_BATCH_SIZE) {
@@ -265,130 +281,164 @@ export const scrapeAndSyncScholarships = async (onProgress?: (count: number) => 
 
         const batchResults = await Promise.all(
             batch.map(source => fetchScholarshipsFromSource(source, SYNC_MAX_PAGES)
-                .catch(() => {
-                    return [];
-                })
+                .catch(() => [])
             )
         );
 
         const flatResults = batchResults.flat();
 
         if (flatResults.length > 0) {
-            // Transform for DB insert
-            const dbRows = flatResults.map(s => ({
-                id: s.id,
-                name: s.name,
-                amount: s.amount,
-                deadline: new Date(s.deadline).toISOString(), // Convert to ISO string for timestamptz
-                link: s.url,
-                description: s.description,
-                requirements: s.requirements,
-                university_id: s.provider,
-                updated_at: new Date().toISOString()
-            }));
+            // Use Firestore batched writes for performance
+            const firestoreBatch = writeBatch(db);
 
-            // Upsert to Supabase
-            const { error } = await supabase
-                .from('scholarships')
-                .upsert(dbRows, { onConflict: 'id' });
+            flatResults.forEach(s => {
+                const docRef = doc(db, 'scholarships', s.id);
+                const deadline = new Date(s.deadline);
 
-            if (error) {
-                console.error('Error syncing batch to Supabase:', error);
+                firestoreBatch.set(docRef, {
+                    id: s.id,
+                    name: s.name,
+                    amount: s.amount,
+                    deadline: isNaN(deadline.getTime()) ? null : deadline.toISOString(),
+                    link: s.url,
+                    description: s.description,
+                    requirements: s.requirements,
+                    university_id: s.provider,
+                    categories: s.categories,
+                    updated_at: new Date().toISOString()
+                });
+            });
+
+            try {
+                await firestoreBatch.commit();
+                totalSynced += flatResults.length;
+            } catch (error) {
+                console.error('Error syncing batch to Firestore:', error);
             }
-
-            totalSynced += flatResults.length;
         }
 
-        // Notify progress
         if (onProgress) {
             onProgress(totalSynced);
         }
     }
+
+    // Clear pagination cache after sync
+    lastDocumentCache.clear();
 };
 
-// Updated search function to fetch from Supabase with Pagination
-export const searchScholarships = async (page: number = 1, limit: number = 20, onProgress?: (count: number) => void): Promise<{ scholarships: Scholarship[], count: number }> => {
-    // Calculate range for Supabase
-    const from = (page - 1) * limit;
-    const to = from + limit - 1;
+// OPTIMIZED: Search scholarships from Firestore with cursor-based pagination
+export const searchScholarships = async (
+    page: number = 1,
+    pageLimit: number = 20,
+    onProgress?: (count: number) => void
+): Promise<{ scholarships: Scholarship[], count: number }> => {
 
-    // Fetch from Supabase
-    console.log(`Fetching scholarships page ${page} from Supabase...`);
+    try {
+        // Get total count (cached by Firestore)
+        const countSnapshot = await getCountFromServer(scholarshipsCollection);
+        const totalCount = countSnapshot.data().count;
 
-    // Get count first (or with data)
-    const { count, error: countError } = await supabase
-        .from('scholarships')
-        .select('*', { count: 'exact', head: true });
-
-    if (countError) {
-        console.error('Error fetching count from Supabase:', countError);
-        console.log('Falling back to live scraping due to DB error...');
-    } else if (count !== null && count > 0) {
-        // We have data, now fetch the page
-        const { data, error } = await supabase
-            .from('scholarships')
-            .select('*')
-            .range(from, to);
-
-        if (error) {
-            console.error('Error fetching data from Supabase:', error);
-        } else if (data) {
-            console.log(`Found ${data.length} scholarships in Supabase (Total: ${count}).`);
-
-            // Transform back to Scholarship type
-            const scholarships: Scholarship[] = data.map((row: any) => ({
-                id: row.id,
-                name: row.name,
-                provider: row.university_id,
-                amount: row.amount,
-                deadline: new Date(row.deadline).toLocaleDateString(),
-                description: row.description,
-                requirements: row.requirements,
-                region: 'National',
-                url: row.link,
-                categories: categorizeScholarship(row.name, row.description)
-            }));
-
-            return { scholarships, count };
+        if (totalCount === 0) {
+            console.log('Firestore empty, falling back to live scraping...');
+            return fallbackToLiveScraping(page, pageLimit, onProgress);
         }
-    } else {
-        console.log('Supabase table is empty. Falling back to live scraping...');
-    }
 
-    // --- FALLBACK: Live Scraping (if DB is empty or error) ---
-    // Check cache first
-    const CACHE_KEY = 'scholarship_cache_v9';
+        // Build query with cursor-based pagination for performance
+        let q;
+        if (page === 1) {
+            // First page - no cursor needed
+            q = query(scholarshipsCollection, orderBy('name'), limit(pageLimit));
+        } else {
+            // Get cursor from cache or fetch previous page
+            const lastDoc = lastDocumentCache.get(page - 1);
+            if (lastDoc) {
+                q = query(scholarshipsCollection, orderBy('name'), startAfter(lastDoc), limit(pageLimit));
+            } else {
+                // Fallback: fetch from beginning (slower but works)
+                const skipCount = (page - 1) * pageLimit;
+                const prefetchQuery = query(scholarshipsCollection, orderBy('name'), limit(skipCount));
+                const prefetchSnapshot = await getDocs(prefetchQuery);
+                const lastVisible = prefetchSnapshot.docs[prefetchSnapshot.docs.length - 1];
+
+                if (lastVisible) {
+                    q = query(scholarshipsCollection, orderBy('name'), startAfter(lastVisible), limit(pageLimit));
+                } else {
+                    q = query(scholarshipsCollection, orderBy('name'), limit(pageLimit));
+                }
+            }
+        }
+
+        const snapshot = await getDocs(q);
+
+        // Cache last document for next page
+        if (snapshot.docs.length > 0) {
+            lastDocumentCache.set(page, snapshot.docs[snapshot.docs.length - 1]);
+        }
+
+        const scholarships: Scholarship[] = snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: data.id,
+                name: data.name,
+                provider: data.university_id,
+                amount: data.amount,
+                deadline: data.deadline ? new Date(data.deadline).toLocaleDateString() : 'See Website',
+                description: data.description,
+                requirements: data.requirements || [],
+                region: 'National',
+                url: data.link,
+                categories: data.categories || categorizeScholarship(data.name, data.description)
+            };
+        });
+
+        console.log(`Loaded ${scholarships.length} scholarships from Firestore (page ${page})`);
+        return { scholarships, count: totalCount };
+
+    } catch (error) {
+        console.error('Error fetching from Firestore:', error);
+        return fallbackToLiveScraping(page, pageLimit, onProgress);
+    }
+};
+
+// Fallback to live scraping if Firestore is empty or fails
+const fallbackToLiveScraping = async (
+    page: number,
+    pageLimit: number,
+    onProgress?: (count: number) => void
+): Promise<{ scholarships: Scholarship[], count: number }> => {
+
+    const CACHE_KEY = 'scholarship_cache_v10';
     const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
     let allResults: Scholarship[] = [];
     const cachedData = localStorage.getItem(CACHE_KEY);
 
     if (cachedData) {
-        const { timestamp, data } = JSON.parse(cachedData);
-        if (Date.now() - timestamp < CACHE_DURATION) {
-            allResults = data;
+        try {
+            const { timestamp, data } = JSON.parse(cachedData);
+            if (Date.now() - timestamp < CACHE_DURATION) {
+                allResults = data;
+            }
+        } catch {
+            localStorage.removeItem(CACHE_KEY);
         }
     }
 
     if (allResults.length === 0) {
-        // Batch requests to prevent overwhelming the browser/network
-        const LIVE_BATCH_SIZE = 10; // Aggressive for speed
-        const LIVE_MAX_PAGES = 3; // Shallow for speed
+        const LIVE_BATCH_SIZE = 10;
+        const LIVE_MAX_PAGES = 3;
 
         for (let i = 0; i < SOURCES.length; i += LIVE_BATCH_SIZE) {
             const batch = SOURCES.slice(i, i + LIVE_BATCH_SIZE);
 
             const batchResults = await Promise.all(
                 batch.map(source => fetchScholarshipsFromSource(source, LIVE_MAX_PAGES)
-                    .catch(() => {
-                        return [];
-                    })
+                    .catch(() => [])
                 )
             );
 
             batchResults.forEach(results => allResults.push(...results));
 
-            // Notify progress
             if (onProgress) {
                 onProgress(allResults.length);
             }
@@ -404,37 +454,12 @@ export const searchScholarships = async (page: number = 1, limit: number = 20, o
             data: allResults
         }));
 
-        // Sync to Supabase in background (fire and forget)
-        const dbRows = allResults.map(s => {
-            const date = new Date(s.deadline);
-            // Check if valid date
-            if (isNaN(date.getTime())) {
-                return null;
-            }
-            return {
-                id: s.id,
-                name: s.name,
-                amount: s.amount,
-                deadline: date.toISOString(),
-                link: s.url,
-                description: s.description,
-                requirements: s.requirements,
-                university_id: s.provider,
-                updated_at: new Date().toISOString()
-            };
-        }).filter(row => row !== null);
-
-        if (dbRows.length > 0) {
-            supabase.from('scholarships').upsert(dbRows, { onConflict: 'id' }).then(({ error }) => {
-                if (error) console.error('Background sync to Supabase failed:', error);
-                else console.log('Background sync to Supabase successful');
-            });
-        }
+        // Sync to Firestore in background
+        syncToFirestoreInBackground(allResults);
     }
 
-    // Simulate pagination for fallback data
-    const startIndex = (page - 1) * limit;
-    const paginatedResults = allResults.slice(startIndex, startIndex + limit);
+    const startIndex = (page - 1) * pageLimit;
+    const paginatedResults = allResults.slice(startIndex, startIndex + pageLimit);
 
     return {
         scholarships: paginatedResults,
@@ -442,29 +467,70 @@ export const searchScholarships = async (page: number = 1, limit: number = 20, o
     };
 };
 
+// Background sync to Firestore
+const syncToFirestoreInBackground = async (scholarships: Scholarship[]) => {
+    try {
+        const BATCH_SIZE = 500; // Firestore max batch size
+
+        for (let i = 0; i < scholarships.length; i += BATCH_SIZE) {
+            const batchScholarships = scholarships.slice(i, i + BATCH_SIZE);
+            const firestoreBatch = writeBatch(db);
+
+            batchScholarships.forEach(s => {
+                const deadline = new Date(s.deadline);
+                if (isNaN(deadline.getTime())) return;
+
+                const docRef = doc(db, 'scholarships', s.id);
+                firestoreBatch.set(docRef, {
+                    id: s.id,
+                    name: s.name,
+                    amount: s.amount,
+                    deadline: deadline.toISOString(),
+                    link: s.url,
+                    description: s.description,
+                    requirements: s.requirements,
+                    university_id: s.provider,
+                    categories: s.categories,
+                    updated_at: new Date().toISOString()
+                });
+            });
+
+            await firestoreBatch.commit();
+        }
+        console.log('Background sync to Firestore successful');
+    } catch (error) {
+        console.error('Background sync to Firestore failed:', error);
+    }
+};
+
+// Get scholarships by IDs
 export const getScholarshipsByIds = async (ids: string[]): Promise<Scholarship[]> => {
     if (!ids.length) return [];
 
-    const { data, error } = await supabase
-        .from('scholarships')
-        .select('*')
-        .in('id', ids);
+    try {
+        // Fetch each document individually (Firestore doesn't have IN query for IDs > 10)
+        const promises = ids.map(id => getDoc(doc(db, 'scholarships', id)));
+        const snapshots = await Promise.all(promises);
 
-    if (error) {
+        return snapshots
+            .filter(snap => snap.exists())
+            .map(snap => {
+                const data = snap.data()!;
+                return {
+                    id: data.id,
+                    name: data.name,
+                    provider: data.university_id,
+                    amount: data.amount,
+                    deadline: data.deadline ? new Date(data.deadline).toLocaleDateString() : 'See Website',
+                    description: data.description,
+                    requirements: data.requirements || [],
+                    region: 'National',
+                    url: data.link,
+                    categories: data.categories || categorizeScholarship(data.name, data.description)
+                };
+            });
+    } catch (error) {
         console.error('Error fetching scholarships by IDs:', error);
         return [];
     }
-
-    return data.map((row: any) => ({
-        id: row.id,
-        name: row.name,
-        provider: row.university_id,
-        amount: row.amount,
-        deadline: new Date(row.deadline).toLocaleDateString(),
-        description: row.description,
-        requirements: row.requirements,
-        region: 'National',
-        url: row.link,
-        categories: categorizeScholarship(row.name, row.description)
-    }));
 };

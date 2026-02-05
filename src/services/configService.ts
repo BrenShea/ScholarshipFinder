@@ -1,4 +1,5 @@
-import { supabase } from './supabaseClient';
+import { db } from './firebaseConfig';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 let cachedApiKey: string | null = null;
 
@@ -9,19 +10,16 @@ export const getGeminiApiKey = async (): Promise<string> => {
     }
 
     try {
-        const { data, error } = await supabase
-            .from('app_config')
-            .select('value')
-            .eq('key', 'gemini_api_key')
-            .single();
+        const docRef = doc(db, 'config', 'gemini_api_key');
+        const docSnap = await getDoc(docRef);
 
-        if (error) {
-            console.error('Error fetching API key from Supabase:', error);
-            throw new Error('Failed to fetch API key from database');
+        if (!docSnap.exists()) {
+            throw new Error('API key not found in database');
         }
 
+        const data = docSnap.data();
         if (!data?.value) {
-            throw new Error('API key not found in database');
+            throw new Error('API key value is empty');
         }
 
         cachedApiKey = data.value;
@@ -34,14 +32,12 @@ export const getGeminiApiKey = async (): Promise<string> => {
 
 export const updateGeminiApiKey = async (newKey: string): Promise<void> => {
     try {
-        const { error } = await supabase
-            .from('app_config')
-            .upsert({ key: 'gemini_api_key', value: newKey }, { onConflict: 'key' });
-
-        if (error) {
-            console.error('Error updating API key in Supabase:', error);
-            throw new Error('Failed to update API key in database');
-        }
+        const docRef = doc(db, 'config', 'gemini_api_key');
+        await setDoc(docRef, {
+            key: 'gemini_api_key',
+            value: newKey,
+            updated_at: new Date().toISOString()
+        });
 
         // Update cache
         cachedApiKey = newKey;

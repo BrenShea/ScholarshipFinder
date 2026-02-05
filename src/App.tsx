@@ -59,17 +59,17 @@ function AppContent() {
   useEffect(() => {
     const loadUserData = async () => {
       if (user) {
-        const profile = await getProfile(user.id);
+        const profile = await getProfile(user.uid);
         if (profile?.gemini_api_key) {
           setGeminiApiKey(profile.gemini_api_key);
         }
 
         // Load applied scholarships
-        const applied = await getAppliedScholarships(user.id);
+        const applied = await getAppliedScholarships(user.uid);
         setAppliedScholarships(applied);
 
         // Load hidden scholarships
-        const hidden = await getHiddenScholarships(user.id);
+        const hidden = await getHiddenScholarships(user.uid);
         setHiddenScholarships(hidden);
       } else {
         // Fallback to localStorage if no user (or clear it)
@@ -158,12 +158,12 @@ function AppContent() {
         title: 'Mark as Completed?',
         message: 'Are you sure you want to mark this scholarship as completed? It will be moved to the Completed tab.',
         onConfirm: async () => {
-          const success = await markScholarshipAsApplied(user.id, scholarshipId);
+          const success = await markScholarshipAsApplied(user.uid, scholarshipId);
           if (success) {
             setAppliedScholarships(prev => [...prev, scholarshipId]);
             // If it was hidden, remove from hidden
             if (hiddenScholarships.includes(scholarshipId)) {
-              await removeHiddenScholarship(user.id, scholarshipId);
+              await removeHiddenScholarship(user.uid, scholarshipId);
               setHiddenScholarships(prev => prev.filter(id => id !== scholarshipId));
             }
           }
@@ -171,7 +171,7 @@ function AppContent() {
       });
     } else {
       // Unmarking is instant
-      const success = await removeAppliedScholarship(user.id, scholarshipId);
+      const success = await removeAppliedScholarship(user.uid, scholarshipId);
       if (success) {
         setAppliedScholarships(prev => prev.filter(id => id !== scholarshipId));
       }
@@ -192,19 +192,19 @@ function AppContent() {
         title: 'Mark as Not Doing?',
         message: 'Are you sure you want to hide this scholarship? It will be moved to the Not Doing tab.',
         onConfirm: async () => {
-          const success = await markScholarshipAsHidden(user.id, scholarshipId);
+          const success = await markScholarshipAsHidden(user.uid, scholarshipId);
           if (success) {
             setHiddenScholarships(prev => [...prev, scholarshipId]);
             // If it was applied, remove from applied
             if (appliedScholarships.includes(scholarshipId)) {
-              await removeAppliedScholarship(user.id, scholarshipId);
+              await removeAppliedScholarship(user.uid, scholarshipId);
               setAppliedScholarships(prev => prev.filter(id => id !== scholarshipId));
             }
           }
         }
       });
     } else {
-      const success = await removeHiddenScholarship(user.id, scholarshipId);
+      const success = await removeHiddenScholarship(user.uid, scholarshipId);
       if (success) {
         setHiddenScholarships(prev => prev.filter(id => id !== scholarshipId));
       }

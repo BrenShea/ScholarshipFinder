@@ -28,13 +28,13 @@ export const generateTailoredEssay = async (
     const genAI = new GoogleGenerativeAI(API_KEY);
 
     // Model fallback order: 
-    // 1. gemini-flash-latest
-    // 2. gemini-flash-lite-latest
-    // 3. gemini-3-pro-preview
+    // 1. gemini-3-flash-preview (primary)
+    // 2. gemini-flash-latest
+    // 3. gemini-flash-lite-latest
     const models = [
+        "gemini-3-flash-preview",
         "gemini-flash-latest",
-        "gemini-flash-lite-latest",
-        "gemini-3-pro-preview"
+        "gemini-flash-lite-latest"
     ];
 
     let studentProfileContext = "";

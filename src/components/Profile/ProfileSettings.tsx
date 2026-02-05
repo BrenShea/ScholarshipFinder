@@ -34,7 +34,7 @@ export const ProfileSettings = () => {
     const loadProfile = async () => {
         if (!user) return;
         try {
-            const data = await getProfile(user.id);
+            const data = await getProfile(user.uid);
             if (data) {
                 setFullName(data.full_name || '');
                 setAge(data.age?.toString() || '');
@@ -58,7 +58,7 @@ export const ProfileSettings = () => {
         setMessage(null);
 
         try {
-            await updateProfile(user.id, {
+            await updateProfile(user.uid, {
                 full_name: fullName,
                 age: age ? parseInt(age) : null,
                 graduation_year: gradYear ? parseInt(gradYear) : null,
@@ -83,7 +83,7 @@ export const ProfileSettings = () => {
         // So we'll update the state and then call updateProfile directly here
         if (user) {
             setSaving(true);
-            updateProfile(user.id, {
+            updateProfile(user.uid, {
                 quiz_answers: answers
             }).then(() => {
                 setMessage({ type: 'success', text: 'Quiz answers saved!' });

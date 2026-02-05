@@ -1,4 +1,5 @@
-import { supabase } from './supabaseClient';
+import { db } from './firebaseConfig';
+import { doc, setDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
 
 export interface UserScholarship {
     id: string;
@@ -8,16 +9,18 @@ export interface UserScholarship {
     applied_at: string;
 }
 
+// Helper to get user scholarships collection reference
+const getUserScholarshipsRef = (userId: string) =>
+    collection(db, 'users', userId, 'userScholarships');
+
 export const getAppliedScholarships = async (userId: string): Promise<string[]> => {
     try {
-        const { data, error } = await supabase
-            .from('user_scholarships')
-            .select('scholarship_id')
-            .eq('user_id', userId)
-            .eq('status', 'applied');
-
-        if (error) throw error;
-        return data.map(item => item.scholarship_id);
+        const q = query(
+            getUserScholarshipsRef(userId),
+            where('status', '==', 'applied')
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => doc.id);
     } catch (error) {
         console.error('Error fetching applied scholarships:', error);
         return [];
@@ -26,18 +29,13 @@ export const getAppliedScholarships = async (userId: string): Promise<string[]> 
 
 export const markScholarshipAsApplied = async (userId: string, scholarshipId: string): Promise<boolean> => {
     try {
-        const { error } = await supabase
-            .from('user_scholarships')
-            .upsert({
-                user_id: userId,
-                scholarship_id: scholarshipId,
-                status: 'applied',
-                applied_at: new Date().toISOString()
-            }, {
-                onConflict: 'user_id,scholarship_id'
-            });
-
-        if (error) throw error;
+        const docRef = doc(db, 'users', userId, 'userScholarships', scholarshipId);
+        await setDoc(docRef, {
+            user_id: userId,
+            scholarship_id: scholarshipId,
+            status: 'applied',
+            applied_at: new Date().toISOString()
+        });
         return true;
     } catch (error) {
         console.error('Error marking scholarship as applied:', error);
@@ -47,13 +45,8 @@ export const markScholarshipAsApplied = async (userId: string, scholarshipId: st
 
 export const removeAppliedScholarship = async (userId: string, scholarshipId: string): Promise<boolean> => {
     try {
-        const { error } = await supabase
-            .from('user_scholarships')
-            .delete()
-            .eq('user_id', userId)
-            .eq('scholarship_id', scholarshipId);
-
-        if (error) throw error;
+        const docRef = doc(db, 'users', userId, 'userScholarships', scholarshipId);
+        await deleteDoc(docRef);
         return true;
     } catch (error) {
         console.error('Error removing applied scholarship:', error);
@@ -63,14 +56,12 @@ export const removeAppliedScholarship = async (userId: string, scholarshipId: st
 
 export const getHiddenScholarships = async (userId: string): Promise<string[]> => {
     try {
-        const { data, error } = await supabase
-            .from('user_scholarships')
-            .select('scholarship_id')
-            .eq('user_id', userId)
-            .eq('status', 'hidden');
-
-        if (error) throw error;
-        return data.map(item => item.scholarship_id);
+        const q = query(
+            getUserScholarshipsRef(userId),
+            where('status', '==', 'hidden')
+        );
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => doc.id);
     } catch (error) {
         console.error('Error fetching hidden scholarships:', error);
         return [];
@@ -79,18 +70,13 @@ export const getHiddenScholarships = async (userId: string): Promise<string[]> =
 
 export const markScholarshipAsHidden = async (userId: string, scholarshipId: string): Promise<boolean> => {
     try {
-        const { error } = await supabase
-            .from('user_scholarships')
-            .upsert({
-                user_id: userId,
-                scholarship_id: scholarshipId,
-                status: 'hidden',
-                applied_at: new Date().toISOString()
-            }, {
-                onConflict: 'user_id,scholarship_id'
-            });
-
-        if (error) throw error;
+        const docRef = doc(db, 'users', userId, 'userScholarships', scholarshipId);
+        await setDoc(docRef, {
+            user_id: userId,
+            scholarship_id: scholarshipId,
+            status: 'hidden',
+            applied_at: new Date().toISOString()
+        });
         return true;
     } catch (error) {
         console.error('Error marking scholarship as hidden:', error);
@@ -100,16 +86,29 @@ export const markScholarshipAsHidden = async (userId: string, scholarshipId: str
 
 export const removeHiddenScholarship = async (userId: string, scholarshipId: string): Promise<boolean> => {
     try {
-        const { error } = await supabase
-            .from('user_scholarships')
-            .delete()
-            .eq('user_id', userId)
-            .eq('scholarship_id', scholarshipId);
-
-        if (error) throw error;
+        const docRef = doc(db, 'users', userId, 'userScholarships', scholarshipId);
+        await deleteDoc(docRef);
         return true;
     } catch (error) {
         console.error('Error removing hidden scholarship:', error);
         return false;
+    }
+};
+
+// Batch get all user scholarship statuses (for performance)
+export const getAllUserScholarshipStatuses = async (userId: string): Promise<Map<string, 'applied' | 'hidden'>> => {
+    try {
+        const snapshot = await getDocs(getUserScholarshipsRef(userId));
+        const statusMap = new Map<string, 'applied' | 'hidden'>();
+        snapshot.docs.forEach(doc => {
+            const data = doc.data();
+            if (data.status === 'applied' || data.status === 'hidden') {
+                statusMap.set(doc.id, data.status);
+            }
+        });
+        return statusMap;
+    } catch (error) {
+        console.error('Error fetching all user scholarship statuses:', error);
+        return new Map();
     }
 };

@@ -25,7 +25,7 @@ export const EssayAssistant: React.FC<EssayAssistantProps> = ({ scholarship, onC
     React.useEffect(() => {
         const loadBaseEssay = async () => {
             if (user) {
-                const profile = await getProfile(user.id);
+                const profile = await getProfile(user.uid);
                 if (profile?.base_essay) {
                     setBaseEssay(profile.base_essay);
                 }
@@ -52,7 +52,7 @@ export const EssayAssistant: React.FC<EssayAssistantProps> = ({ scholarship, onC
             // Fetch user profile if logged in
             let userProfile;
             if (user) {
-                userProfile = await getProfile(user.id);
+                userProfile = await getProfile(user.uid);
             }
 
             const result = await generateTailoredEssay(essayQuestion, scholarship, userProfile || undefined);
